@@ -1,0 +1,20 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/uolstore/home/users/el22mg/ros2_ws/install/lab5/lib/python3.10/site-packages",
+        "/uolstore/home/users/el22mg/ros2_ws/install/lab4/lib/python3.10/site-packages",
+        "/uolstore/home/users/el22mg/ros2_ws/install/lab3/lib/python3.10/site-packages",
+        "/uolstore/home/users/el22mg/ros2_ws/install/lab2/lib/python3.10/site-packages",
+        "/uolstore/home/users/el22mg/ros2_ws/install/lab1/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/uolstore/home/users/el22mg/ros2_ws/install/lab5/lib/python3.10/site-packages",
+        "/uolstore/home/users/el22mg/ros2_ws/install/lab4/lib/python3.10/site-packages",
+        "/uolstore/home/users/el22mg/ros2_ws/install/lab3/lib/python3.10/site-packages",
+        "/uolstore/home/users/el22mg/ros2_ws/install/lab2/lib/python3.10/site-packages",
+        "/uolstore/home/users/el22mg/ros2_ws/install/lab1/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}
