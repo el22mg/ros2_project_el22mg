@@ -25,6 +25,7 @@ setup(
             'third_step = ros2_project_el22mg.thirdStep:main',
             'fourth_step = ros2_project_el22mg.fourthStep:main',
             'lab5_listener = ros2_project_el22mg.lab5Listener:main',
+            'project_soln = ros2_project_el22mg.projectSoln:main',
         ],
     },
 )
