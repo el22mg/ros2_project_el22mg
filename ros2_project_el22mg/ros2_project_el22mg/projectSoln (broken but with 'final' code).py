@@ -25,9 +25,6 @@ import signal
 # For performing operations for certain amount of time (self.rate.sleep seems to crash when used in this script for intended purposes)
 import time
 
-# For random goal position generation
-import random
-
 
 
 
@@ -82,7 +79,13 @@ class ProjectSoln(Node):
         
     def callback(self, data):
 
-        #self.get_logger().info(f'BEAT')
+
+
+
+        self.get_logger().info(f'BEAT')
+
+
+
 
         # Convert the received image into an opencv image
         # But remember that you should always wrap a call to this conversion method in an exception handler
@@ -183,12 +186,14 @@ class ProjectSoln(Node):
                 
                 
                 
+                # *******************************************************
                 # Get moments of contour to find centroid of blue cube on screen
                 M = cv2.moments(c)
                 
                 if M["m00"] != 0:
                     self.blueAcrossPos = int(M["m10"] / M["m00"])
-                    #self.get_logger().info(f"BlueAcrossPos: {self.blueAcrossPos}")              
+                    self.get_logger().info(f"BlueAcrossPos: {self.blueAcrossPos}")              
+                # *******************************************************
                 
                 
                 
@@ -269,42 +274,31 @@ class ProjectSoln(Node):
         #self.publisherTalker.publish(msg)  
         
             
-            
-            
-            
-            
-    #
-            
-            
               
             
     def walk_forward(self):
         # Make the robot move forwards
         desired_velocity = Twist()
-        desired_velocity.linear.x = 0.5
+        desired_velocity.linear.x = 0.03
         self.publisher.publish(desired_velocity)
         self.get_logger().info(f'Walking forwards')
 
     def walk_backward(self):
         # Make the robot move backwards
         desired_velocity = Twist()
-        desired_velocity.linear.x = -0.5
+        desired_velocity.linear.x = -0.03
         self.publisher.publish(desired_velocity)
         self.get_logger().info(f'Walking backwards')
-           
-    def stop(self):
-        # Make the robot stop
-        desired_velocity = Twist()
-        self.publisher.publish(desired_velocity)  
-        self.get_logger().info(f'Stopping')   
-        
-        
-                       
+    '''                    
     def seekCubePartialRotation(self):
         desired_velocity = Twist()
+        
+        self.get_logger().info('In seekCube')
             
         desired_velocity.angular.z = 0.785398163 # Rotate anticlockwise at 0.785398163 rad/s (2pi/8, allowing rotation of 45 degrees per second)
         self.publisher.publish(desired_velocity)
+        
+        self.get_logger().info('Pre-\'sleep\'') # Rotating until 45 degree turn achieved (10 sleeps = 1 second)
         
         start = time.time()
         duration = 1.0  # 1 second
@@ -319,21 +313,20 @@ class ProjectSoln(Node):
         while time.time() - start < duration: # Block until 1 second has passed
             pass
                 
-                           
+    '''            '''                        
     def centreBlueCube(self):
-        desired_velocity = Twist()
                     
-        #self.get_logger().info(f'ImageCentreX: {self.imageCentreX}')
-        #self.get_logger().info(f'BlueAcrossPos: {self.blueAcrossPos}')
+        self.get_logger().info(f'ImageCentreX: {self.imageCentreX}')
+        self.get_logger().info(f'BlueAcrossPos: {self.blueAcrossPos}')
         blueCubeCentreOffsetRight = self.blueAcrossPos - self.imageCentreX
         while (abs(blueCubeCentreOffsetRight) > 30 and blueCubeCentreOffsetRight != -1):
-            if (blueCubeCentreOffsetRight > 50): # Blue cube on right half of screen
-                desired_velocity.angular.z = -0.05 # Rotate anticlockwise at small speed, allowing correction in small steps
-                #self.get_logger().info('Right side of screen: Rotate anticlockwise')
+            if (blueCubeCentreOffsetRight > 30): # Blue cube on right half of screen
+                desired_velocity.angular.z = -0.1 # Rotate anticlockwise at small speed, allowing correction in small steps
+                self.get_logger().info('Right side of screen: Rotate Anticlock\'')
                 
-            elif (blueCubeCentreOffsetRight < 50): # Blue cube on left half of screen
-                desired_velocity.angular.z =  0.05 # Rotate clockwise at small speed, allowing correction in small steps
-                #self.get_logger().info('Left side of screen: Rotate clockwise')
+            elif (blueCubeCentreOffsetRight < 30): # Blue cube on left half of screen
+                desired_velocity.angular.z =  0.1 # Rotate clockwise at small speed, allowing correction in small steps
+                self.get_logger().info('Left side of screen: Rotate Clock\'')
                     
             self.publisher.publish(desired_velocity)
                             
@@ -349,9 +342,32 @@ class ProjectSoln(Node):
         # Stop rotation (once blue cube centred on screen)
         self.stop()
         
-        self.get_logger().info('Blue cube centred')      
-    
+        
+        self.get_logger().info('Blue cube centred')
+        # *********************************************************************************************        
+    '''
 
+    def stop(self):
+        # Make the robot stop
+        desired_velocity = Twist()
+        self.publisher.publish(desired_velocity)  
+        self.get_logger().info(f'Stopping')      
+            
+
+        
+        
+        
+        
+        
+
+
+    def queueGoals(self):
+        # Add goal to queue or start immediately if idle
+        self.send_goal(-1.00, -6.00, 3.14159)
+        #self.send_goal(-5.00, 0.00, 0.00247)
+        self.goalQueue.append((7.00, -7.00, 0.00247))
+        self.goalQueue.append((-3.00, -11.50, 1.50))
+        
         
         
 
@@ -386,14 +402,16 @@ class ProjectSoln(Node):
         result = future.result().result
         self.get_logger().info(f'Navigation result: {result}')
         
-        self.stopNavving = True # Prompt robot to spin to search for cubes (or seek blue cube)
+        
+        self.stopNavving = True
+         
+        
+            
+            
             
     def feedback_callback(self, feedback_msg):
         feedback = feedback_msg.feedback
         # NOTE: if you want, you can use the feedback while the robot is moving.
-        
-        
-        
 
 def main(args=None):
     rclpy.init(args=args)
@@ -406,9 +424,7 @@ def main(args=None):
 
     projectSoln = ProjectSoln()
     
-    #
-    nextGoal = (random.uniform(-13, 4), random.uniform(-9, 7), random.uniform(0, 6.283185307)) # Set a random point to move to
-    projectSoln.send_goal(*nextGoal) # Using `*` operator unpacks tuple elements as parameters
+    projectSoln.queueGoals()
     
     
     signal.signal(signal.SIGINT, signal_handler)
@@ -416,22 +432,22 @@ def main(args=None):
     thread.start()
     
     
-    # Spin between navigations until all cube colours detected, then start moving in 1m range of blue cube
+    # Stall until all cube colours detected, then start moving in 1m range of blue cube
     while projectSoln.navNotFinished:
         if (projectSoln.stopNavving):
             projectSoln.get_logger().info(f'Not navving')
-            for _ in range(8):
+            '''for _ in range(8):
                 projectSoln.seekCubePartialRotation()
                 if (projectSoln.firstGreenDetected and projectSoln.firstRedDetected and projectSoln.blueDetected):
                     projectSoln.centreBlueCube()
                     projectSoln.navNotFinished = False
-                    break
-            
+            '''
             # If there are more goals in the queue, send the next one
-            if projectSoln.navNotFinished: #projectSoln.goalQueue and 
-                nextGoal = (random.uniform(-13, 4), random.uniform(-9, 7), random.uniform(0, 6.283185307)) # Set a random goal point to move to
-                #
+            if projectSoln.goalQueue:
+                nextGoal = projectSoln.goalQueue.pop(0)
                 projectSoln.send_goal(*nextGoal) # Using `*` operator unpacks tuple elements as parameters
+            else:
+                projectSoln.navNotFinished = False
                 
             projectSoln.stopNavving = False
             
@@ -442,20 +458,21 @@ def main(args=None):
     
     while True: # Publish moves
         
+        #projectSoln.get_logger().info(f'blueDetected: {projectSoln.blueDetected}')
+        #projectSoln.get_logger().info(f'redDetected: {projectSoln.redDetected}')
+        #projectSoln.get_logger().info(f'stopFlag: {projectSoln.stopFlag}')
+        #projectSoln.get_logger().info(f'moveForwardsFlag: {projectSoln.moveForwardsFlag}')
+        #projectSoln.get_logger().info(f'moveBackwardsFlag: {projectSoln.moveBackwardsFlag}')
+        #projectSoln.get_logger().info(f'moveBackwardsFlag: {projectSoln.blueContourSize}')
+        
         if projectSoln.moveForwardsFlag:
             projectSoln.walk_forward()
         
         elif projectSoln.moveBackwardsFlag:
             projectSoln.walk_backward()
-        
+            
         else: # Neither move forwards or move backwards flag true
             projectSoln.stop()
-            
-                
-        # Centre blue cube each tick on approach to adjust trajectory 'in-flight'
-        projectSoln.centreBlueCube()
-            
-        
 
 
 
